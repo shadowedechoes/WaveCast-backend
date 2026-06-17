@@ -1,10 +1,10 @@
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
-const { Server } = require("socket.io");
+const { Server } = require("sockets.io");
 
 const connectDB = require("./db");
-const socketHandler = require("./socket");
+const socketsHandler = require("./sockets");
 
 const app = express();
 
@@ -21,7 +21,7 @@ cors: { origin: "*" }
 
 app.use("/auth", require("./routes/auth"));
 
-socketHandler(io);
+socketsHandler(io);
 
 app.get("/", (req,res)=>{
 res.json({status:"WaveCast running"});

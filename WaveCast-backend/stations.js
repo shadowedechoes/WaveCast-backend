@@ -5,29 +5,29 @@ let bannedUsers = new Set();
 let stations = {};
 
 module.exports = (io) => {
-    io.on("connection", (socket) => {
+    io.on("connection", (sockets) => {
 
         let user = null;
 
         // LOGIN
-        socket.on("login", async (data) => {
+        sockets.on("login", async (data) => {
             const u = await login(data.username, data.password);
 
             if (!u || u.banned) {
-                socket.emit("login_result", { success: false });
+                sockets.emit("login_result", { success: false });
                 return;
             }
 
             user = u;
 
-            socket.emit("login_result", {
+            sockets.emit("login_result", {
                 success: true,
                 role: u.role
             });
         });
 
         // CHAT
-        socket.on("chat", (msg) => {
+        sockets.on("chat", (msg) => {
             if (!user) return;
             if (bannedUsers.has(user.username)) return;
 
@@ -38,7 +38,7 @@ module.exports = (io) => {
         });
 
         // START BROADCAST
-        socket.on("start_broadcast", (station) => {
+        sockets.on("start_broadcast", (station) => {
             if (!user || user.role !== "dj") return;
 
             stations[station] = {
@@ -50,7 +50,7 @@ module.exports = (io) => {
         });
 
         // CO-DJ
-        socket.on("join_codj", (station) => {
+        sockets.on("join_codj", (station) => {
             if (!user) return;
 
             if (!stations[station]) return;
@@ -59,7 +59,7 @@ module.exports = (io) => {
         });
 
         // BAN USER
-        socket.on("ban_user", async (username) => {
+        sockets.on("ban_user", async (username) => {
             if (!user || user.role === "listener") return;
 
             bannedUsers.add(username);const Station = require("./models/Station");
@@ -100,12 +100,12 @@ module.exports = {
         });
 
         // KICK USER
-        socket.on("kick_user", (username) => {
+        sockets.on("kick_user", (username) => {
             io.emit("force_disconnect", username);
         });
 
         // OWNER OVERRIDE
-        socket.on("override_station", (station) => {
+        sockets.on("override_station", (station) => {
             if (!user || user.role !== "super_owner") return;
 
             stations[station].dj = user.username;
@@ -114,8 +114,8 @@ module.exports = {
         });
 
         // WEBRTC
-        socket.on("offer", (id, data) => io.to(id).emit("offer", socket.id, data));
-        socket.on("answer", (id, data) => io.to(id).emit("answer", socket.id, data));
-        socket.on("candidate", (id, data) => io.to(id).emit("candidate", socket.id, data));
+        sockets.on("offer", (id, data) => io.to(id).emit("offer", sockets.id, data));
+        sockets.on("answer", (id, data) => io.to(id).emit("answer", sockets.id, data));
+        sockets.on("candidate", (id, data) => io.to(id).emit("candidate", sockets.id, data));
     });
 };

@@ -1,8 +1,8 @@
 module.exports = (io) => {
 
-io.on("connection", (socket) => {
+io.on("connection", (sockets) => {
 
-socket.on("chat", (data) => {
+sockets.on("chat", (data) => {
 
 io.emit("chat", {
 user: data.user || "Guest",
